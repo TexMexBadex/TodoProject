@@ -1,11 +1,10 @@
-﻿namespace UserIdentityService.Models
+﻿using Microsoft.AspNetCore.Identity;
+
+namespace UserIdentityService.Models
 {
-  public class User
+  public class User : IdentityUser
   {
-    public Guid Id { get; set; } = Guid.NewGuid(); // Automatically generate a new GUID for each user
-    public required string Username { get; set; }
-    public required string PasswordHash { get; set; } // Storing a hash of the password
-    public required string Name { get; set; }
-    public required string Email { get; set; }
+    public string Username { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
   }
 }

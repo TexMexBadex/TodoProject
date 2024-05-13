@@ -17,17 +17,7 @@ namespace UserIdentityService.Controllers
       _userService = userService;
     }
 
-    //TODO: Fix
-    [HttpPost("register")]
-    public ActionResult<User> Register([FromBody] User request)
-    {
-      var user = _userService.Register(request.Username, request.PasswordHash, request.Name, request.Email);
-      if (user == null)
-      {
-        return BadRequest("User could not be registered.");
-      }
-      return Ok(user);
-    }
+    
 
   }
 }

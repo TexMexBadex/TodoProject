@@ -1,27 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using UserIdentityService.Models;
 
 namespace UserIdentityService.Data
 {
-  public class UserContext : DbContext
+  public class UserContext : IdentityDbContext<User>
   {
 
-    public DbSet<User> Users { get; set; }
-
-    protected readonly IConfiguration Configuration;
-
-
-    public UserContext(IConfiguration configuration)
+    public UserContext(DbContextOptions<UserContext> options) : base(options)
     {
-      Configuration = configuration;
+      
     }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder options)
-    {
-      // connect to postgres with connection string from app settings
-      options.UseNpgsql(Configuration.GetConnectionString("Database"));
-    }
-
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
       base.OnModelCreating(modelBuilder);

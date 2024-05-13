@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using UserIdentityService.Data;
+using UserIdentityService.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +11,11 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<UserContext>();
+builder.Services.AddDbContext<UserContext>(options =>
+  options.UseNpgsql(builder.Configuration.GetConnectionString("Database")));
+
+builder.Services.AddIdentityApiEndpoints<User>()
+  .AddEntityFrameworkStores<UserContext>();
 
 var app = builder.Build();
 
@@ -21,7 +26,7 @@ if (app.Environment.IsDevelopment())
   app.UseSwaggerUI();
 }
 
-
+app.MapIdentityApi<User>();
 
 app.UseHttpsRedirection();
 
