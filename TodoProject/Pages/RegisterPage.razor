@@ -1,37 +1,30 @@
 ﻿@page "/register"
+
 @inject HttpClient Http
 @using TodoProject.Models
 
 
-  <RadzenStack Orientation="Orientation.Vertical"></RadzenStack>
-  <RadzenRow Gap="1rem">
-    <RadzenFormField Text="Name" Variant="Variant.Outlined">
-      <RadzenTextBox @bind-Value="_userRegisterRequest.Name"/>
-    </RadzenFormField>
-    <RadzenFormField Text="Email" Variant="Variant.Outlined">
-      <RadzenTextBox style="display: block" Name="Email" @bind-Value=@_userRegisterRequest.Email class="w-100"/>
-      <RadzenRequiredValidator Component="Email" Text="Email is required" Style="position: absolute"/>
-      <RadzenEmailValidator Component="Email" Text="Provide a valid email address" Style="position: absolute"/>
-    </RadzenFormField>
-  </RadzenRow>
+
+<RadzenTemplateForm TItem="RegisterRequest">
+  <RadzenFieldset>
+    <RadzenStack Orientation="Orientation.Vertical" Gap="1rem">
+      <RadzenLabel Component="Name" Text="Enter your full name" />
+      <RadzenTextBox @bind-Value="registerRequest.Name" Name="Name" />
+      <RadzenLabel Component="Email" Text="Enter your e-mail" />
+      <RadzenTextBox @bind-Value="registerRequest.Email" Name="Email" />
+      <RadzenLabel Component="Username" Text="Enter a username" />
+      <RadzenTextBox @bind-Value="registerRequest.Username" Name="Username"/>
+      <RadzenLabel Component="Password" Text="Enter a password" />
+      <RadzenPassword @bind-Value="registerRequest.Password" Name="Password" />
+    </RadzenStack>
+  </RadzenFieldset>
+
+</RadzenTemplateForm>
+
+
 
 
 
 @code {
-    private RegisterRequest _userRegisterRequest = new();
-
-  private async Task HandleRegister()
-  {
-    // var response = await Http.PostAsJsonAsync("http://localhost:3500/v1.0/invoke/userservice/method/register", _userRegisterRequest);
-    // if (response.IsSuccessStatusCode)
-    // {
-    //   // Handle success, perhaps navigate to a login page or a success page
-    //   NavigationManager.NavigateTo("/login");
-    // }
-    // else
-    // {
-    //   // Handle error, show an error message
-    //   Console.Error.WriteLine("Registration failed.");
-    // }
-    }
-  }
+  RegisterRequest registerRequest = new();
+}

@@ -1,0 +1,84 @@
+﻿@using BlazorFrontendTodo.Models
+@inject HttpClient _httpClient
+@inject NavigationManager Navigation
+@inject NotificationService _nfService
+
+@page "/register"
+
+<div class="row">
+
+  <div class="col d-flex justify-content-end">
+    <LoginDisplay />
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-6 offset-lg-3">
+    <RadzenTemplateForm Data="@registerRequest" TItem="RegModel" Submit="@OnSubmit">
+      <RadzenFieldset Text="Register">
+
+        <div class="col pb-2">
+          <RadzenLabel Component="Email" Text="Enter an email address" />
+        </div>
+        <div class="col pb-2">
+          <RadzenTextBox @bind-Value="registerRequest.Email" Name="Email" class="w-100" />
+        </div>
+
+        <div class="col pb-2">
+          <RadzenRequiredValidator Component="Email" Text="Enter an email" Style="position:absolute" />
+          <RadzenEmailValidator Component="Email" Text="Provide a valid email" Style="position:absolute" />
+        </div>
+        <div class="col pb-2">
+          <RadzenLabel Component="Password" Text="Enter a password" />
+        </div>
+        <div class="col pb-2">
+          <RadzenPassword @bind-Value="registerRequest.Password" Name="Password" class="w-100" />
+          <div class="col d-block mb-2">
+            <RadzenRequiredValidator Component="Password" Text="Provide a password" Style="position:absolute" />
+            <RadzenRegexValidator Component="Password" Text="Please use at least one lower case letter!" Pattern="^(?=.*[a-z]).{1,}$" />
+            <RadzenRegexValidator Component="Password" Text="Please use at least one upper case letter!" Pattern="^(?=.*[A-Z]).{1,}$" />
+            <RadzenRegexValidator Component="Password" Text="Please use at least one non-alphanumeric character!" Pattern="^(?=.*[!\#$%^&*()]).{1,}$" />
+            <RadzenRegexValidator Component="Password" Text="Please use at least one number!" Pattern="^(?=.*\d).{1,}$" />
+            <RadzenRegexValidator Component="Password" Text="Password needs to be at least 6 characters long." Pattern="^.{6,}$" Style="display:block" />
+          </div>
+        </div>
+        <div class="col pb-2">
+          <RadzenLabel Component="ConfirmPas" Text="Confirm password" />
+        </div>
+        <div class="col pb-2">
+          <RadzenPassword @bind-Value="registerRequest.ConfirmPassword" Name="ConfirmPas" class="w-100" />
+          <RadzenRequiredValidator Component="ConfirmPas" Text="Repeat your password" Style="position:absolute" />
+          @if (!string.IsNullOrWhiteSpace(registerRequest.Password))
+          {
+            <RadzenCompareValidator Visible=@(!string.IsNullOrEmpty(registerRequest.ConfirmPassword)) Value=@registerRequest.Password Component="ConfirmPas" Text="Passwords should match." />
+          }
+        </div>
+        <RadzenButton ButtonType="ButtonType.Submit" Text="Submit" />
+      </RadzenFieldset>
+    </RadzenTemplateForm>
+  </div>
+</div>
+
+
+
+@code {
+  private RegModel registerRequest = new();
+
+  private async Task OnSubmit()
+  {
+    var response = await _httpClient.PostAsJsonAsync("api/auth/register", registerRequest);
+    if (response.IsSuccessStatusCode)
+    {
+      Navigation.NavigateTo("/login");
+    }
+    else
+    {
+      // Hent fejlmeddelelser fra responsen og vis dem
+      var errorMessages = await response.Content.ReadFromJsonAsync<List<string>>();
+      foreach (var errorMessage in errorMessages)
+      {
+        _nfService.Notify(NotificationSeverity.Error, "Registration Failed", errorMessage);
+      }
+    }
+  }
+}

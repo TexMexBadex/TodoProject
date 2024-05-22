@@ -1,0 +1,284 @@
+﻿@page "/todo"
+@using BlazorFrontendTodo.Models
+@using Microsoft.AspNetCore.Authorization
+@using BlazorFrontendTodo.Services.Interfaces
+@using BlazorFrontendTodo.Components
+@using BlazorFrontendTodo.Models.Dtos
+
+@attribute [Authorize]
+@inject IAuthService AuthService
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager _navigationManager
+@inject NotificationService _nfService
+
+<RadzenNotification />
+
+<div class="d-flex justify-content-end">
+  <LoginDisplay />
+</div>
+
+<div class="col-lg-6 offset-lg-3 " align="center">
+  <RadzenText TextStyle="TextStyle.DisplayH2">What tasks are you doing today?</RadzenText>
+
+  <div class="row">
+    <div class="d-flex col m-2 justify-content-evenly">
+
+      <RadzenTextBox Placeholder="Do laundry..." Name="TaskContent" @bind-Value="currentTodo.Content" Style="flex-grow: 1;" />
+      <RadzenRequiredValidator Component="TaskContent" DefaultValue="string.Empty" />
+      
+      <RadzenButton class="pr-2" Icon="@(isEditing ? "save" : "add")" Click="@(isEditing ? SaveTask : CreateTask)" />
+
+
+      <RadzenButton Icon="calendar_month" Click="ToggleCalendar" />
+
+      @if (isCalendarVisible)
+      {
+        <RadzenDatePicker @bind-Value="currentTodo.Reminder" ShowTime="true" DateFormat="dd/MM/yyyy HH:mm" Min="DateTime.Now" InitialViewDate="DateTime.Now" />
+      }
+    </div>
+  </div>
+  @if (tasks.Any(t => t.IsCompleted))
+  {
+
+    <div class="row m-2">
+      <RadzenButton Icon="delete" Text="Delete all completed tasks" Click="DeleteCompletedTasks" />
+    </div>
+  }
+
+  <div class="row p-2">
+    <div class="col">
+      
+      <TaskList TItem="TaskItem" OnDelete="DeleteTask" OnEdit="EditTask" Tasks="@tasks" OnTaskCompletedChanged="HandleTaskCompletedChange" />
+    </div>
+  </div>
+</div>
+
+@code {
+  private List<TaskItem> tasks = new(); // Liste til at holde alle opgaver
+  private CreateTaskDto currentTodo = new(); // Den aktuelle opgave, der bliver redigeret
+  private string errorMessage; // Til at gemme fejlbeskeder
+  private bool isCalendarVisible = false; // Styrer synligheden af kalenderen
+  private bool isEditing = false; // Flag for at tjekke om vi er i redigeringstilstand
+  private Guid? editingTaskId = null; // ID for den task, der redigeres
+
+
+  protected override async Task OnInitializedAsync()
+  {
+    var token = await AuthService.GetTokenAsync();
+    if (!string.IsNullOrEmpty(token))
+    {
+      try
+      {
+        var httpClient = HttpClientFactory.CreateClient("taskApi");
+        tasks = await httpClient.GetFromJsonAsync<List<TaskItem>>("api/task");
+        StateHasChanged();
+      }
+      catch (Exception ex)
+      {
+        errorMessage = $"Error loading tasks: {ex.Message}";
+        _nfService.Notify(NotificationSeverity.Error, "Error", errorMessage);
+      }
+    }
+    else
+    {
+      _navigationManager.NavigateTo("/login");
+    }
+  }
+
+  private async Task CreateTask()
+  {
+    if (string.IsNullOrWhiteSpace(currentTodo.Content))
+    {
+      errorMessage = "Task content cannot be empty.";
+      _nfService.Notify(NotificationSeverity.Warning, "Warning", errorMessage, -1);
+      return;
+    }
+
+    try
+    {
+      var userId = await AuthService.GetUserIdAsync(); // Hent brugerid
+
+      if (string.IsNullOrWhiteSpace(userId))
+      {
+        errorMessage = "User ID not found.";
+        _nfService.Notify(NotificationSeverity.Warning, "Warning", errorMessage, -1);
+        return;
+      }
+
+      var newTask = new CreateTaskDto
+        {
+          UserId = userId, // Brug det hentede bruger ID
+          Content = currentTodo.Content,
+          Reminder = currentTodo.Reminder
+        };
+
+      var httpClient = HttpClientFactory.CreateClient("taskApi");
+
+      var response = await httpClient.PostAsJsonAsync("api/task", newTask);
+      if (response.IsSuccessStatusCode)
+      {
+        var createdTask = await response.Content.ReadFromJsonAsync<TaskItem>();
+        tasks.Add(createdTask);
+        StateHasChanged(); // Opdatér visningen
+
+        _nfService.Notify(NotificationSeverity.Success, "Success", "Task created successfully.");
+      }
+      else
+      {
+        var errorDetails = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+        errorMessage = $"Failed to create task: {errorDetails["message"]}";
+        _nfService.Notify(NotificationSeverity.Error, "Failed", errorMessage);
+      }
+
+    }
+    catch (Exception ex)
+    {
+      errorMessage = $"Error creating task: {ex.Message}";
+      _nfService.Notify(NotificationSeverity.Error, "Failed", errorMessage);
+    }
+
+    currentTodo = new CreateTaskDto(); //nulstil taskitem
+
+    isCalendarVisible = false; // Skjul kalenderen efter oprettelse af en ny opgave
+    StateHasChanged(); // Opdatér TodoPage komponenten
+  }
+
+  private void EditTask(TaskItem task)
+  {
+    if (task.Reminder.HasValue)
+    {
+    isCalendarVisible = true;
+
+    }
+
+    currentTodo = new CreateTaskDto
+      {
+        Content = task.Content,
+        Reminder = task.Reminder
+      };
+    editingTaskId = task.Id;
+    isEditing = true; // Sæt redigeringstilstand til true
+  }
+
+  private async Task SaveTask()
+  {
+    if (string.IsNullOrWhiteSpace(currentTodo.Content) || editingTaskId == null)
+    {
+      errorMessage = "Task content cannot be empty.";
+      _nfService.Notify(NotificationSeverity.Warning, "Warning", errorMessage, -1);
+      return;
+    }
+
+    var taskToUpdate = tasks.FirstOrDefault(t => t.Id == editingTaskId);
+
+    if (taskToUpdate == null)
+    {
+      errorMessage = "Task not found.";
+      _nfService.Notify(NotificationSeverity.Warning, "Warning", errorMessage, -1);
+      return;
+    }
+
+    // Check if there are any changes
+    if (taskToUpdate.Content == currentTodo.Content && taskToUpdate.Reminder == currentTodo.Reminder)
+    {
+      _nfService.Notify(NotificationSeverity.Info, "Info", "No changes were done.");
+      isEditing = false; // Nulstil redigeringstilstand
+      currentTodo = new CreateTaskDto(); // Nulstil taskitem
+      return;
+    }
+
+    taskToUpdate.Content = currentTodo.Content;
+    taskToUpdate.Reminder = currentTodo.Reminder;
+
+    var httpClient = HttpClientFactory.CreateClient("taskApi");
+    var response = await httpClient.PutAsJsonAsync($"api/task/{taskToUpdate.Id}", taskToUpdate);
+    if (response.IsSuccessStatusCode)
+    {
+      _nfService.Notify(NotificationSeverity.Success, "Success", "Task updated successfully.");
+    }
+    else
+    {
+      var errorDetails = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+      errorMessage = $"Failed to update task: {errorDetails["message"]}";
+      _nfService.Notify(NotificationSeverity.Error, "Failed", errorMessage);
+    }
+
+    currentTodo = new CreateTaskDto(); // Nulstil taskitem
+    isEditing = false; // Nulstil redigeringstilstand
+    isCalendarVisible = false; // Skjul kalenderen efter opdatering af opgave
+    StateHasChanged(); // Opdatér TodoPage komponenten
+  }
+
+  private async Task DeleteTask(TaskItem task)
+  {
+    if (task is null) return;
+
+    var httpClient = HttpClientFactory.CreateClient("taskApi");
+
+    var response = await httpClient.DeleteAsync($"api/task/{task.Id}");
+    if (response.IsSuccessStatusCode)
+    {
+      tasks.Remove(task); // Fjern task fra listen
+      currentTodo = new CreateTaskDto(); // Nulstil taskitem
+      isEditing = false; // Nulstil redigeringstilstand
+      isCalendarVisible = false; // Skjul kalenderen efter opdatering af opgave
+      StateHasChanged(); // Opdatér visningen
+
+      _nfService.Notify(NotificationSeverity.Success, "Success", "Task deleted successfully.");
+    }
+    else
+    {
+      errorMessage = $"Failed to delete task with ID {task.Id}.";
+      _nfService.Notify(NotificationSeverity.Error, "Failed", errorMessage);
+    }
+  }
+
+  private async Task DeleteCompletedTasks()
+  {
+    var completedTaskIds = tasks.Where(task => task.IsCompleted).Select(task => task.Id).ToList();
+
+    if (completedTaskIds.Any())
+    {
+      var httpClient = HttpClientFactory.CreateClient("taskApi");
+
+      foreach (var taskId in completedTaskIds)
+      {
+        var response = await httpClient.DeleteAsync($"api/task/{taskId}");
+        if (response.IsSuccessStatusCode)
+        {
+          tasks.RemoveAll(t => t.Id == taskId);
+        }
+        else
+        {
+          errorMessage = $"Failed to delete task with ID {taskId}.";
+
+          _nfService.Notify(NotificationSeverity.Error, "Something went wrong", errorMessage);
+
+        }
+      }
+
+      StateHasChanged();
+    }
+  }
+
+  private async Task HandleTaskCompletedChange(TaskItem task)
+  {
+    var httpClient = HttpClientFactory.CreateClient("taskApi");
+    var response = await httpClient.PutAsJsonAsync($"api/task/{task.Id}", task);
+    if (response.IsSuccessStatusCode)
+    {
+      tasks = tasks.OrderBy(t => t.IsCompleted).ToList(); // Sortér opgaverne
+      StateHasChanged(); // Opdatér visningen
+    }
+    else
+    {
+      errorMessage = "Failed to update task status.";
+      _nfService.Notify(NotificationSeverity.Warning, "Failed", errorMessage);
+    }
+  }
+
+  private void ToggleCalendar()
+  {
+    isCalendarVisible = !isCalendarVisible;
+  }
+}

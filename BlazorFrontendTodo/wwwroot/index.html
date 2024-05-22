@@ -4,14 +4,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TodoProject</title>
+  <title>BlazorFrontendTodo</title>
   <base href="/" />
   <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
   <link rel="stylesheet" href="css/app.css" />
-  <link rel="icon" type="image/png" href="favicon.png" />
-  <link href="TodoProject.styles.css" rel="stylesheet" />
   <link rel="stylesheet" href="_content/Radzen.Blazor/css/material-base.css">
-  <script src="_content/Radzen.Blazor/Radzen.Blazor.js?v=@(typeof(Radzen.Colors).Assembly.GetName().Version)"></script>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link href="BlazorFrontendTodo.styles.css" rel="stylesheet" />
 </head>
 
 <body>
@@ -28,7 +27,9 @@
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
-    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js"></script>
+<script src="_framework/blazor.webassembly.js"></script>
+<script src="_content/Radzen.Blazor/Radzen.Blazor.js?v=@(typeof(Radzen.Colors).Assembly.GetName().Version)"></script>
 </body>
 
 </html>

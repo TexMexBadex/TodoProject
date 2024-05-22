@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.34707.107
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TodoBlazor", "TodoProject\TodoBlazor.csproj", "{B0D7662D-A0E6-4555-9F72-E37891B1E9BC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorFrontendTodo", "BlazorFrontendTodo\BlazorFrontendTodo.csproj", "{681496E4-8C88-4E96-A6C9-1FA72AF30ADE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdentityManager", "IdentityManager\IdentityManager.csproj", "{D3D91E11-F2D6-4D6F-95F4-2FA7E16E88B1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskMicroservice", "TaskMicroservice\TaskMicroservice.csproj", "{94E133EA-1667-496E-BEB7-5C3C9447DA43}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +15,18 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B0D7662D-A0E6-4555-9F72-E37891B1E9BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B0D7662D-A0E6-4555-9F72-E37891B1E9BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B0D7662D-A0E6-4555-9F72-E37891B1E9BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B0D7662D-A0E6-4555-9F72-E37891B1E9BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{681496E4-8C88-4E96-A6C9-1FA72AF30ADE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{681496E4-8C88-4E96-A6C9-1FA72AF30ADE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{681496E4-8C88-4E96-A6C9-1FA72AF30ADE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{681496E4-8C88-4E96-A6C9-1FA72AF30ADE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3D91E11-F2D6-4D6F-95F4-2FA7E16E88B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3D91E11-F2D6-4D6F-95F4-2FA7E16E88B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3D91E11-F2D6-4D6F-95F4-2FA7E16E88B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3D91E11-F2D6-4D6F-95F4-2FA7E16E88B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94E133EA-1667-496E-BEB7-5C3C9447DA43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94E133EA-1667-496E-BEB7-5C3C9447DA43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94E133EA-1667-496E-BEB7-5C3C9447DA43}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94E133EA-1667-496E-BEB7-5C3C9447DA43}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

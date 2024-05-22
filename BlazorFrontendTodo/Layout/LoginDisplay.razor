@@ -1,0 +1,29 @@
+﻿@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using BlazorFrontendTodo.Services.Interfaces
+@inject NavigationManager Navigation
+@inject IAuthService AuthService
+@inject CustomAuthenticationStateProvider AuthenticationStateProvider
+
+<AuthorizeView>
+  <Authorized>
+    <RadzenButton class="d-flex justify-content-start" Icon="logout" ButtonStyle="ButtonStyle.Danger" Text="Log out" Click="BeginLogOut"></RadzenButton>
+  </Authorized>
+  <NotAuthorized>
+    <RadzenButton class="w-10" Icon="login"  Text="Log in" Click="RedirectToLogin"></RadzenButton>
+  </NotAuthorized>
+</AuthorizeView>
+
+@code {
+  public async Task BeginLogOut()
+  {
+    await AuthService.RemoveTokenAsync(); // Fjern token fra AuthService
+    AuthenticationStateProvider.NotifyUserLogout(); // Underret systemet om logout
+    RedirectToLogin();
+  }
+
+  public void RedirectToLogin()
+  {
+    Navigation.NavigateTo("/login");
+  }
+}
+
