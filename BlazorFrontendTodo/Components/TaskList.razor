@@ -13,9 +13,15 @@ else
 
 <RadzenDataGrid Data="@sortedTasks" TItem="TaskItem">
   <Columns>
-    <RadzenDataGridColumn TItem="TaskItem" Property="Id" Visible="false" Filterable="false" Sortable="false" />
+    <RadzenDataGridColumn TItem="TaskItem" Property="Id" Visible="false" Filterable="false" Sortable="false"/>
     <RadzenDataGridColumn TItem="TaskItem" Property="UserId" Visible="false" Filterable="false" Sortable="false" />
-    <RadzenDataGridColumn Width="auto" TItem="TaskItem" Property="Content" Filterable="false" Sortable="false"/>
+    <RadzenDataGridColumn Width="auto"  TItem="TaskItem" Property="Content" Filterable="false" Sortable="false">
+    <Template Context="task">
+      <div style="white-space: normal; word-wrap: break-word; font-size:medium; ">
+        @task.Content
+      </div>
+    </Template>
+    </RadzenDataGridColumn>
     <RadzenDataGridColumn TextAlign="TextAlign.Center" Width="12rem" TItem="TaskItem" Property="Reminder" Filterable="false" Sortable="false" >
       <HeaderTemplate>
         <RadzenImage Path="calendar-clock.png" Style="width: 20px; height: 20px;" />
@@ -23,7 +29,7 @@ else
       <Template Context="task">
         @if (task.Reminder.HasValue)
         {
-          <RadzenTextBox Value="@task.Reminder.Value.ToString("g")" ReadOnly="true" Style="width: 100%;"/>
+            <RadzenLabel Text="@task.Reminder.Value.ToString("g")" Style="font-size: medium; " />
         }
         else
         {

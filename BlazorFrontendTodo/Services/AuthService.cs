@@ -1,19 +1,13 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using System.Net.Http;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using BlazorFrontendTodo.Models;
-using BlazorFrontendTodo.Services.Interfaces;
+﻿using BlazorFrontendTodo.Services.Interfaces;
 using Microsoft.JSInterop;
 
-public class AuthService : IAuthService
-{ 
-  private const string TokenKey = "authToken"; // Nøglen til token i local storage
-  private readonly IJSRuntime _jsRuntime; // JavaScript runtime til at interagere med browserens local storage
-  private readonly IHttpClientFactory _httpClientFactory;
+namespace BlazorFrontendTodo.Services;
 
+public class AuthService : IAuthService
+{
+  private const string TokenKey = "authToken"; // Nøglen til token i session storage
+  private readonly IJSRuntime _jsRuntime; // JavaScript runtime til at interagere med browserens session storage
+  private readonly IHttpClientFactory _httpClientFactory;
 
   public AuthService(IJSRuntime jsRuntime, IHttpClientFactory httpClientFactory)
   {
@@ -23,17 +17,17 @@ public class AuthService : IAuthService
 
   public async Task<string> GetTokenAsync()
   {
-    return await _jsRuntime.InvokeAsync<string>("localStorage.getItem", TokenKey);
+    return await _jsRuntime.InvokeAsync<string>("sessionStorage.getItem", TokenKey);
   }
 
   public async Task SetTokenAsync(string token)
   {
-    await _jsRuntime.InvokeVoidAsync("localStorage.setItem", TokenKey, token);
+    await _jsRuntime.InvokeVoidAsync("sessionStorage.setItem", TokenKey, token);
   }
 
   public async Task RemoveTokenAsync()
   {
-    await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", TokenKey);
+    await _jsRuntime.InvokeVoidAsync("sessionStorage.removeItem", TokenKey);
   }
 
   public async Task<string> GetUserIdAsync()

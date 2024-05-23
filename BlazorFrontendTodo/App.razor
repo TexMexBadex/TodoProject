@@ -1,5 +1,5 @@
 ﻿@using BlazorFrontendTodo.Pages
-@inject CustomAuthenticationStateProvider _authenticationStateProvider
+@inject global::BlazorFrontendTodo.Services.UserAuthenticationStateProvider _authenticationStateProvider
 @inject NavigationManager _navManager
 
 <CascadingAuthenticationState>
@@ -31,23 +31,17 @@
 </CascadingAuthenticationState>
 
 @code {
-  protected override async Task OnInitializedAsync()
-  {
-    var isTokenValid = await _authenticationStateProvider.IsTokenValid();
-    if (isTokenValid)
-    {
-      _navManager.NavigateTo("/todo");
-    }
-    else
-    {
-      //sørger for at den ikke redirector til login siden fra registreringssiden
-      var currentUri = _navManager.Uri;
-      var relativeUri = currentUri.Replace(_navManager.BaseUri, "/");
+  // protected override async Task OnInitializedAsync()
+  // {
+  //   // Sørger for at den ikke redirector til login siden fra registreringssiden
+  //   var currentUri = _navManager.Uri;
+  //   var relativeUri = currentUri.Replace(_navManager.BaseUri, "/");
 
-      if (relativeUri is not "/register") 
-      {
-        _navManager.NavigateTo("/login");
-      }
-    }
-  }
+  //   if (relativeUri != "/register" && relativeUri != "/login")
+  //   {
+  //     _navManager.NavigateTo("/login");
+  //   }
+
+  //   await Task.CompletedTask; 
+  // }
 }

@@ -26,15 +26,15 @@
       <RadzenTextBox Placeholder="Do laundry..." Name="TaskContent" @bind-Value="currentTodo.Content" Style="flex-grow: 1;" />
       <RadzenRequiredValidator Component="TaskContent" DefaultValue="string.Empty" />
       
-      <RadzenButton class="pr-2" Icon="@(isEditing ? "save" : "add")" Click="@(isEditing ? SaveTask : CreateTask)" />
-
-
       <RadzenButton Icon="calendar_month" Click="ToggleCalendar" />
-
       @if (isCalendarVisible)
       {
         <RadzenDatePicker @bind-Value="currentTodo.Reminder" ShowTime="true" DateFormat="dd/MM/yyyy HH:mm" Min="DateTime.Now" InitialViewDate="DateTime.Now" />
       }
+      <RadzenButton class="pr-2" Icon="@(isEditing ? "save" : "add")" Click="@(isEditing ? SaveTask : CreateTask)" />
+
+
+
     </div>
   </div>
   @if (tasks.Any(t => t.IsCompleted))
@@ -94,6 +94,13 @@
       return;
     }
 
+    if (currentTodo.Reminder < DateTime.Now)
+    {
+      errorMessage = "Reminder cannot be in the past.";
+      _nfService.Notify(NotificationSeverity.Warning, "Warning", errorMessage, -1);
+      return;
+    }
+
     try
     {
       var userId = await AuthService.GetUserIdAsync(); // Hent brugerid
@@ -119,6 +126,7 @@
       {
         var createdTask = await response.Content.ReadFromJsonAsync<TaskItem>();
         tasks.Add(createdTask);
+
         StateHasChanged(); // Opdatér visningen
 
         _nfService.Notify(NotificationSeverity.Success, "Success", "Task created successfully.");

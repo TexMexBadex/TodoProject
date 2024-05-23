@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using BlazorFrontendTodo; 
+using BlazorFrontendTodo;
+using BlazorFrontendTodo.Services;
 using Microsoft.Extensions.DependencyInjection;
 using BlazorFrontendTodo.Services.Interfaces;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -18,22 +19,22 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddHttpClient("taskApi", client =>
 {
   client.BaseAddress = new Uri("https://localhost:7183"); // Task API base-URL
-}).AddHttpMessageHandler<CustomAuthorizationMessageHandler>();
+}).AddHttpMessageHandler<AuthorizationMessageHandler>();
 
 // Tilføj en HttpClient til User API
 builder.Services.AddHttpClient("userApi", client =>
 {
   client.BaseAddress = new Uri("https://localhost:7241"); // User API base-URL
-}).AddHttpMessageHandler<CustomAuthorizationMessageHandler>();;
+}).AddHttpMessageHandler<AuthorizationMessageHandler>();
 
 builder.Services.AddScoped<NotificationService>();
 
 // Registrer CustomAuthenticationStateProvider og AuthService
-builder.Services.AddScoped<CustomAuthenticationStateProvider>();
-builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CustomAuthenticationStateProvider>());
+builder.Services.AddScoped<UserAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<UserAuthenticationStateProvider>());
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-builder.Services.AddTransient<CustomAuthorizationMessageHandler>(); //Transient for at sikre, at handleren er stateless og "frisk" for hver HTTP-anmodning
+builder.Services.AddTransient<AuthorizationMessageHandler>(); //Transient for at sikre, at handleren er stateless og "frisk" for hver HTTP-anmodning
 
 // Tilføj autorisation services
 builder.Services.AddAuthorizationCore();

@@ -33,24 +33,29 @@ public class AuthController : ControllerBase
     return Ok(userId);
   }
 
-
   [HttpPost("register")]
   public async Task<IActionResult> Register([FromBody] RegModel model)
   {
     if (string.IsNullOrWhiteSpace(model.Email))
     {
-      return BadRequest(new List<string> { "Email is required." });
+      return BadRequest(new { Error = "Email is required." });
+    }
+
+    if (string.IsNullOrWhiteSpace(model.Password))
+    {
+      return BadRequest(new { Error = "Password is required." });
+
     }
 
     if (model.Password != model.ConfirmPassword)
     {
-      return BadRequest(new List<string> { "Passwords do not match." });
+      return BadRequest(new { Error = "Passwords do not match." });
     }
 
     var user = await _userManager.FindByEmailAsync(model.Email);
     if (user != null)
     {
-      return BadRequest(new List<string> { "A user with this email already exists." });
+      return BadRequest(new { Error = "A user with this email already exists." });
     }
 
     user = new IdentityUser { UserName = model.Email, Email = model.Email };
@@ -94,7 +99,16 @@ public class AuthController : ControllerBase
     var token = tokenHandler.CreateToken(tokenDescriptor);
     var tokenString = tokenHandler.WriteToken(token);
 
+    var cookieOptions = new CookieOptions
+    {
+      HttpOnly = true,
+      Secure = true,
+      Expires = DateTime.UtcNow.AddDays(7),
+      SameSite = SameSiteMode.Strict
+    };
+
+    Response.Cookies.Append("authToken", tokenString, cookieOptions);
+
     return Ok(new { Token = tokenString });
   }
-
 }

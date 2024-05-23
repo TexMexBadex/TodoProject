@@ -7,6 +7,8 @@ using TaskMicroservice.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddDaprClient();
+
 builder.Services.AddCors(options =>
 {
   options.AddDefaultPolicy(builder =>
@@ -89,4 +91,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapSubscribeHandler(); // Tilføjet for at støtte Dapr pub/sub
+app.UseCloudEvents(); // Tilføjet for at støtte Dapr CloudEvents
+
 app.Run();

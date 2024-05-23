@@ -2,7 +2,7 @@
 @using BlazorFrontendTodo.Services.Interfaces
 @inject NavigationManager Navigation
 @inject IAuthService AuthService
-@inject CustomAuthenticationStateProvider AuthenticationStateProvider
+@inject global::BlazorFrontendTodo.Services.UserAuthenticationStateProvider AuthenticationStateProvider
 
 <AuthorizeView>
   <Authorized>
