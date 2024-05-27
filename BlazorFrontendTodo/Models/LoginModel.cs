@@ -2,7 +2,7 @@
 {
   public class LoginModel
   {
-    public string Email { get; set; } // Email adresse
-    public string Password { get; set; } // Password
+    public string Email { get; set; } = string.Empty; // Email adresse
+    public string Password { get; set; } = string.Empty;  // Password
   }
 }

@@ -1,5 +1,6 @@
 ﻿using BlazorFrontendTodo.Services.Interfaces;
 using Microsoft.JSInterop;
+using System.Net.Http.Headers;
 
 namespace BlazorFrontendTodo.Services;
 
@@ -42,4 +43,24 @@ public class AuthService : IAuthService
     var userId = await response.Content.ReadAsStringAsync();
     return userId;
   }
+
+  public async Task<string> GetUserEmailAsync()
+  {
+    var httpClient = _httpClientFactory.CreateClient("userApi");
+    var token = await GetTokenAsync();
+
+    if (string.IsNullOrEmpty(token))
+    {
+      throw new Exception("User is not authenticated");
+    }
+
+
+    var response = await httpClient.GetAsync("api/auth/email");
+    response.EnsureSuccessStatusCode();
+
+    var email = await response.Content.ReadAsStringAsync();
+    return email;
+  }
+
+
 }

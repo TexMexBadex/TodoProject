@@ -1,12 +1,23 @@
-﻿namespace BlazorFrontendTodo.Models
+﻿using System.Runtime.Serialization;
+namespace ReminderMicroservice.Models
 {
+[DataContract]
+
   public class TaskItem
   {
+  [DataMember]
     public Guid Id { get; set; }
-    public string UserId { get; set; } = string.Empty;
+
+    [DataMember]
+
     public string UserEmail { get; set; } = string.Empty;
+    [DataMember]
+
+
     public string Content { get; set; } = string.Empty;
+    [DataMember]
+
     public DateTime? Reminder { get; set; }
-    public bool IsCompleted { get; set; }
+
   }
 }

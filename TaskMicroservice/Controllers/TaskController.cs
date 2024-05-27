@@ -9,20 +9,16 @@ using TaskMicroservice.Models;
 public class TaskController : ControllerBase
 {
   private readonly TaskDbContext _context;
+  private readonly ILogger<TaskController> _logger;
   private readonly DaprClient _daprClient;
 
-  public TaskController(TaskDbContext context, DaprClient daprClient)
+  public TaskController(TaskDbContext context, ILogger<TaskController> logger, DaprClient daprClient)
   {
     _context = context;
+    _logger = logger;
     _daprClient = daprClient;
   }
 
-  // GET: api/Task
-  [HttpGet]
-  public async Task<ActionResult<IEnumerable<TaskItem>>> GetTasks()
-  {
-    return await _context.Tasks.ToListAsync();
-  }
 
   // GET: api/Task/{guid-id}
   [HttpGet("{id}")]
@@ -32,11 +28,12 @@ public class TaskController : ControllerBase
 
     if (taskItem == null)
     {
-      return NotFound(new { message = "Task not found." });
+      return NotFound("Task not found.");
     }
 
     return taskItem;
   }
+
 
   // PUT: api/Task/{guid-id}
   [HttpPut("{id}")]
@@ -44,40 +41,44 @@ public class TaskController : ControllerBase
   {
     if (id != taskItem.Id)
     {
-      return BadRequest(new { message = "Task ID mismatch." });
+      return BadRequest("Task ID mismatch.");
     }
 
-    var existingTask = await _context.Tasks.FindAsync(id);
+    var existingTask = await _context.Tasks.AsNoTracking().FirstOrDefaultAsync(t => t.Id == id);
 
     if (existingTask == null)
     {
-      return NotFound(new { message = "Task not found." });
+      return NotFound("Task not found.");
     }
 
     _context.Entry(taskItem).State = EntityState.Modified;
 
     try
     {
-      await _context.SaveChangesAsync();
+
 
       // Send besked til ReminderMicroservice via Dapr
-      if (taskItem.Reminder.HasValue)
+      if (taskItem.Reminder.HasValue && taskItem.IsCompleted == false)
       {
-        await _daprClient.PublishEventAsync("reminderpubsub", "updatereminder", taskItem);
+        await _daprClient.PublishEventAsync("pubsub", "updatereminder", taskItem);
+
       }
-      else if (existingTask.Reminder.HasValue && !taskItem.Reminder.HasValue)
+
+      if (existingTask.Reminder.HasValue && !taskItem.Reminder.HasValue || taskItem.IsCompleted)
       {
-        await _daprClient.PublishEventAsync("reminderpubsub", "deletereminder", taskItem);
+        await _daprClient.PublishEventAsync("pubsub", "deletereminder", taskItem);
+
       }
+      await _context.SaveChangesAsync();
     }
     catch (DbUpdateConcurrencyException)
     {
       if (!TaskItemExists(id))
       {
-        return NotFound(new { message = "Task not found." });
+        return NotFound("Task not found.");
       }
 
-      return Conflict(new { message = "Concurrency conflict: the task was modified by another user." });
+      return Conflict("Concurrency conflict: the task was modified by another user.");
     }
 
     return NoContent();
@@ -100,13 +101,15 @@ public class TaskController : ControllerBase
     _context.Tasks.Add(taskItem);
     try
     {
-      await _context.SaveChangesAsync();
 
       // Send besked til ReminderMicroservice via Dapr
       if (taskItem.Reminder.HasValue)
       {
-        await _daprClient.PublishEventAsync("reminderpubsub", "newreminder", taskItem);
+        _logger.LogInformation("Publishing new reminder event");
+        await _daprClient.PublishEventAsync("pubsub", "newreminder", taskItem);
+        await _context.SaveChangesAsync();
       }
+
     }
     catch (Exception ex)
     {
@@ -124,24 +127,26 @@ public class TaskController : ControllerBase
 
     if (taskItem == null)
     {
-      return NotFound(new { message = "Task not found." });
+      return NotFound("Task not found.");
     }
 
     _context.Tasks.Remove(taskItem);
 
+
     try
     {
-      await _context.SaveChangesAsync();
-
       // Send besked til ReminderMicroservice via Dapr
       if (taskItem.Reminder.HasValue)
       {
         await _daprClient.PublishEventAsync("reminderpubsub", "deletereminder", taskItem);
+        await _context.SaveChangesAsync();
+        return Ok();
       }
+
     }
-    catch (Exception ex)
+    catch (Exception)
     {
-      return StatusCode(500, new { message = "An error occurred while deleting the task.", details = ex.Message });
+      return StatusCode(500, "An error occurred while deleting the task.");
     }
 
     return NoContent();

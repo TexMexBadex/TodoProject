@@ -27,6 +27,11 @@ builder.Services.AddHttpClient("userApi", client =>
   client.BaseAddress = new Uri("https://localhost:7241"); // User API base-URL
 }).AddHttpMessageHandler<AuthorizationMessageHandler>();
 
+builder.Services.AddHttpClient("unauthenticatedUserApi", client =>
+{
+  client.BaseAddress = new Uri("https://localhost:7241"); // User API base-URL
+});
+
 builder.Services.AddScoped<NotificationService>();
 
 // Registrer CustomAuthenticationStateProvider og AuthService

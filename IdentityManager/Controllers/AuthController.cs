@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using System.Text;
 using IdentityManager.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -33,29 +34,42 @@ public class AuthController : ControllerBase
     return Ok(userId);
   }
 
+  [HttpGet("email")]
+  [Authorize]
+  public IActionResult GetEmail()
+  {
+    var email = User.FindFirstValue(ClaimTypes.Email);
+    if (email == null)
+    {
+      return Unauthorized("Email not found in token.");
+    }
+
+    return Ok(email);
+  }
+
   [HttpPost("register")]
   public async Task<IActionResult> Register([FromBody] RegModel model)
   {
     if (string.IsNullOrWhiteSpace(model.Email))
     {
-      return BadRequest(new { Error = "Email is required." });
+      return BadRequest("Email is required.");
     }
 
     if (string.IsNullOrWhiteSpace(model.Password))
     {
-      return BadRequest(new { Error = "Password is required." });
+      return BadRequest("Password is required.");
 
     }
 
     if (model.Password != model.ConfirmPassword)
     {
-      return BadRequest(new { Error = "Passwords do not match." });
+      return BadRequest("Passwords do not match.");
     }
 
     var user = await _userManager.FindByEmailAsync(model.Email);
     if (user != null)
     {
-      return BadRequest(new { Error = "A user with this email already exists." });
+      return BadRequest("A user with this email already exists.");
     }
 
     user = new IdentityUser { UserName = model.Email, Email = model.Email };
@@ -63,7 +77,7 @@ public class AuthController : ControllerBase
 
     if (result.Succeeded)
     {
-      return Ok(new { Result = "User created successfully" });
+      return Ok("User created successfully");
     }
 
     var errors = result.Errors.Select(e => e.Description).ToList();
@@ -76,12 +90,12 @@ public class AuthController : ControllerBase
     var user = await _userManager.FindByEmailAsync(model.Email);
     if (user == null)
     {
-      return BadRequest(new { Error = "Invalid email or password." });
+      return BadRequest("Invalid email or password.");
     }
 
     if (!await _userManager.CheckPasswordAsync(user, model.Password))
     {
-      return BadRequest(new { Error = "Invalid email or password." });
+      return BadRequest("Invalid email or password.");
     }
 
     var tokenHandler = new JwtSecurityTokenHandler();

@@ -1,15 +1,9 @@
-﻿@using BlazorFrontendTodo.Models
+﻿@using System.ComponentModel.DataAnnotations
+@using BlazorFrontendTodo.Models
 @typeparam TItem
 
-@if (!Tasks.Any())
-{
-  <p>
-    Loading tasks...
-  </p>
 
-}
-else
-{
+
 
 <RadzenDataGrid Data="@sortedTasks" TItem="TaskItem">
   <Columns>
@@ -58,10 +52,10 @@ else
 
   </Columns>
 </RadzenDataGrid>
-}
+
 
 @code {
-  [Parameter]
+  [Parameter, Required]
   public List<TaskItem> Tasks { get; set; }
 
   [Parameter]

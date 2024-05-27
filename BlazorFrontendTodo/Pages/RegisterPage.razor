@@ -1,9 +1,12 @@
 ﻿@using BlazorFrontendTodo.Models
-@inject HttpClient _httpClient
+@inject IHttpClientFactory _HttpClientFactory
 @inject NavigationManager Navigation
 @inject NotificationService _nfService
 
 @page "/register"
+
+<RadzenNotification />
+
 
 <div class="row">
 
@@ -66,19 +69,23 @@
 
   private async Task OnSubmit()
   {
-    var response = await _httpClient.PostAsJsonAsync("api/auth/register", registerRequest);
+    var httpClient = _HttpClientFactory.CreateClient("unauthenticatedUserApi");
+
+    var response = await httpClient.PostAsJsonAsync("api/auth/register", registerRequest);
     if (response.IsSuccessStatusCode)
     {
+      var message = await response.Content.ReadAsStringAsync();
+      _nfService.Notify(NotificationSeverity.Success, "Registration Successful!", message);
+
       Navigation.NavigateTo("/login");
     }
     else
     {
       // Hent fejlmeddelelser fra responsen og vis dem
-      var errorMessages = await response.Content.ReadFromJsonAsync<List<string>>();
-      foreach (var errorMessage in errorMessages)
-      {
-        _nfService.Notify(NotificationSeverity.Error, "Registration Failed", errorMessage);
-      }
+      var errorMessage = await response.Content.ReadAsStringAsync();
+
+      _nfService.Notify(NotificationSeverity.Error, "Registration Failed", errorMessage);
+
     }
   }
 }

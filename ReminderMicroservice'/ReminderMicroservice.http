@@ -1,6 +1,0 @@
-@ReminderMicroservice__HostAddress = http://localhost:5162
-
-GET {{ReminderMicroservice__HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

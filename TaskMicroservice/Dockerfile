@@ -1,6 +1,7 @@
 # Use the official .NET 8 SDK image
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
+EXPOSE 80
 
 # Copy the csproj and restore as distinct layers
 COPY TaskMicroservice/*.csproj .

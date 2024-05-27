@@ -1,4 +1,4 @@
-﻿namespace ReminderMicroservice_.Services.Interfaces
+﻿namespace ReminderMicroservice.Services.Interfaces
 {
   public interface IEmailService
   {

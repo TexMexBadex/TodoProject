@@ -1,9 +1,9 @@
 ﻿@page "/todo"
-@using BlazorFrontendTodo.Models
-@using Microsoft.AspNetCore.Authorization
-@using BlazorFrontendTodo.Services.Interfaces
 @using BlazorFrontendTodo.Components
+@using BlazorFrontendTodo.Models
 @using BlazorFrontendTodo.Models.Dtos
+@using BlazorFrontendTodo.Services.Interfaces
+@using Microsoft.AspNetCore.Authorization
 
 @attribute [Authorize]
 @inject IAuthService AuthService
@@ -11,55 +11,57 @@
 @inject NavigationManager _navigationManager
 @inject NotificationService _nfService
 
-<RadzenNotification />
+<RadzenNotification/>
 
 <div class="d-flex justify-content-end">
-  <LoginDisplay />
+  <LoginDisplay/>
 </div>
 
 <div class="col-lg-6 offset-lg-3 " align="center">
   <RadzenText TextStyle="TextStyle.DisplayH2">What tasks are you doing today?</RadzenText>
-
+@if (isLoading)
+{
+  <p>Loading tasks...</p>
+}
+else
+{
   <div class="row">
     <div class="d-flex col m-2 justify-content-evenly">
 
-      <RadzenTextBox Placeholder="Do laundry..." Name="TaskContent" @bind-Value="currentTodo.Content" Style="flex-grow: 1;" />
-      <RadzenRequiredValidator Component="TaskContent" DefaultValue="string.Empty" />
-      
-      <RadzenButton Icon="calendar_month" Click="ToggleCalendar" />
+      <RadzenTextBox Placeholder="Do laundry..." Name="TaskContent" @bind-Value="currentTodo.Content" Style="flex-grow: 1;"/>
+      <RadzenRequiredValidator Component="TaskContent" DefaultValue="string.Empty"/>
+
+      <RadzenButton Icon="calendar_month" Click="ToggleCalendar"/>
       @if (isCalendarVisible)
       {
-        <RadzenDatePicker @bind-Value="currentTodo.Reminder" ShowTime="true" DateFormat="dd/MM/yyyy HH:mm" Min="DateTime.Now" InitialViewDate="DateTime.Now" />
+        <RadzenDatePicker @bind-Value="currentTodo.Reminder" ShowTime="true" DateFormat="dd/MM/yyyy HH:mm" Min="DateTime.Now" InitialViewDate="DateTime.Now"/>
       }
-      <RadzenButton class="pr-2" Icon="@(isEditing ? "save" : "add")" Click="@(isEditing ? SaveTask : CreateTask)" />
-
-
-
+      <RadzenButton class="pr-2" Icon="@(isEditing ? "save" : "add")" Click="@(isEditing ? SaveTask : CreateTask)"/>
     </div>
   </div>
   @if (tasks.Any(t => t.IsCompleted))
   {
-
     <div class="row m-2">
-      <RadzenButton Icon="delete" Text="Delete all completed tasks" Click="DeleteCompletedTasks" />
+      <RadzenButton Icon="delete" Text="Delete all completed tasks" Click="DeleteCompletedTasks"/>
     </div>
   }
-
   <div class="row p-2">
     <div class="col">
-      
-      <TaskList TItem="TaskItem" OnDelete="DeleteTask" OnEdit="EditTask" Tasks="@tasks" OnTaskCompletedChanged="HandleTaskCompletedChange" />
+      <TaskList TItem="TaskItem" OnDelete="DeleteTask" OnEdit="EditTask" Tasks="@tasks" OnTaskCompletedChanged="HandleTaskCompletedChange"/>
     </div>
   </div>
+}
 </div>
 
+
 @code {
-  private List<TaskItem> tasks = new(); // Liste til at holde alle opgaver
+  private List<TaskItem> tasks = new(); // Listen af tasks for brugeren
   private CreateTaskDto currentTodo = new(); // Den aktuelle opgave, der bliver redigeret
-  private string errorMessage; // Til at gemme fejlbeskeder
-  private bool isCalendarVisible = false; // Styrer synligheden af kalenderen
-  private bool isEditing = false; // Flag for at tjekke om vi er i redigeringstilstand
-  private Guid? editingTaskId = null; // ID for den task, der redigeres
+  private string? errorMessage; // Til at gemme fejlbeskeder
+  private bool isCalendarVisible; // Styrer synligheden af kalenderen
+  private bool isEditing; // Flag for at tjekke om vi er i redigeringstilstand
+  private bool isLoading = true;
+  private Guid? editingTaskId; // ID for den task, der redigeres
 
 
   protected override async Task OnInitializedAsync()
@@ -67,17 +69,16 @@
     var token = await AuthService.GetTokenAsync();
     if (!string.IsNullOrEmpty(token))
     {
-      try
+      var userId = await AuthService.GetUserIdAsync(); // Hent bruger-id'et
+      var httpClient = HttpClientFactory.CreateClient("taskApi");
+      tasks = await httpClient.GetFromJsonAsync<List<TaskItem>>($"api/task/user/{userId}");
+      if (!tasks.Any() || tasks == null)
       {
-        var httpClient = HttpClientFactory.CreateClient("taskApi");
-        tasks = await httpClient.GetFromJsonAsync<List<TaskItem>>("api/task");
-        StateHasChanged();
+        _nfService.Notify(NotificationSeverity.Info, "Info", "No tasks were found.");
       }
-      catch (Exception ex)
-      {
-        errorMessage = $"Error loading tasks: {ex.Message}";
-        _nfService.Notify(NotificationSeverity.Error, "Error", errorMessage);
-      }
+        isLoading = false;
+
+      StateHasChanged();
     }
     else
     {
@@ -94,54 +95,50 @@
       return;
     }
 
-    if (currentTodo.Reminder < DateTime.Now)
+    if (currentTodo.Reminder <= DateTime.Now)
     {
       errorMessage = "Reminder cannot be in the past.";
       _nfService.Notify(NotificationSeverity.Warning, "Warning", errorMessage, -1);
       return;
     }
 
-    try
+
+    var userId = await AuthService.GetUserIdAsync(); // Hent brugerid
+
+    var userEmail = await AuthService.GetUserEmailAsync(); //Hent email fra bruger
+
+    if (string.IsNullOrWhiteSpace(userId))
     {
-      var userId = await AuthService.GetUserIdAsync(); // Hent brugerid
+      errorMessage = "User ID not found.";
+      _nfService.Notify(NotificationSeverity.Warning, "Warning", errorMessage, -1);
+      return;
+    }
 
-      if (string.IsNullOrWhiteSpace(userId))
-      {
-        errorMessage = "User ID not found.";
-        _nfService.Notify(NotificationSeverity.Warning, "Warning", errorMessage, -1);
-        return;
-      }
+    var newTask = new CreateTaskDto
+    {
+      UserId = userId, // Brug det hentede bruger ID
+      UserEmail = userEmail,
+      Content = currentTodo.Content,
+      Reminder = currentTodo.Reminder
+    };
 
-      var newTask = new CreateTaskDto
-        {
-          UserId = userId, // Brug det hentede bruger ID
-          Content = currentTodo.Content,
-          Reminder = currentTodo.Reminder
-        };
+    var httpClient = HttpClientFactory.CreateClient("taskApi");
 
-      var httpClient = HttpClientFactory.CreateClient("taskApi");
-
-      var response = await httpClient.PostAsJsonAsync("api/task", newTask);
-      if (response.IsSuccessStatusCode)
-      {
-        var createdTask = await response.Content.ReadFromJsonAsync<TaskItem>();
+    var response = await httpClient.PostAsJsonAsync("api/task", newTask);
+    if (response.IsSuccessStatusCode)
+    {
+      var createdTask = await response.Content.ReadFromJsonAsync<TaskItem>();
+      if (createdTask != null)
         tasks.Add(createdTask);
 
-        StateHasChanged(); // Opdatér visningen
+      StateHasChanged(); // Opdatér visningen
 
-        _nfService.Notify(NotificationSeverity.Success, "Success", "Task created successfully.");
-      }
-      else
-      {
-        var errorDetails = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
-        errorMessage = $"Failed to create task: {errorDetails["message"]}";
-        _nfService.Notify(NotificationSeverity.Error, "Failed", errorMessage);
-      }
-
+      _nfService.Notify(NotificationSeverity.Success, "Success", "Task created successfully.");
     }
-    catch (Exception ex)
+    else
     {
-      errorMessage = $"Error creating task: {ex.Message}";
+      var errorDetails = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+      errorMessage = $"Failed to create task: {errorDetails["message"]}";
       _nfService.Notify(NotificationSeverity.Error, "Failed", errorMessage);
     }
 
@@ -155,15 +152,14 @@
   {
     if (task.Reminder.HasValue)
     {
-    isCalendarVisible = true;
-
+      isCalendarVisible = true;
     }
 
     currentTodo = new CreateTaskDto
-      {
-        Content = task.Content,
-        Reminder = task.Reminder
-      };
+    {
+      Content = task.Content,
+      Reminder = task.Reminder
+    };
     editingTaskId = task.Id;
     isEditing = true; // Sæt redigeringstilstand til true
   }
@@ -206,8 +202,8 @@
     }
     else
     {
-      var errorDetails = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
-      errorMessage = $"Failed to update task: {errorDetails["message"]}";
+      var errorDetails = await response.Content.ReadAsStringAsync();
+      errorMessage = $"Failed to update task: {errorDetails}";
       _nfService.Notify(NotificationSeverity.Error, "Failed", errorMessage);
     }
 
@@ -236,7 +232,7 @@
     }
     else
     {
-      errorMessage = $"Failed to delete task with ID {task.Id}.";
+      errorMessage = await response.Content.ReadAsStringAsync();
       _nfService.Notify(NotificationSeverity.Error, "Failed", errorMessage);
     }
   }
@@ -258,10 +254,10 @@
         }
         else
         {
-          errorMessage = $"Failed to delete task with ID {taskId}.";
+          errorMessage = await response.Content.ReadAsStringAsync();
+
 
           _nfService.Notify(NotificationSeverity.Error, "Something went wrong", errorMessage);
-
         }
       }
 
@@ -280,7 +276,8 @@
     }
     else
     {
-      errorMessage = "Failed to update task status.";
+      errorMessage = await response.Content.ReadAsStringAsync();
+
       _nfService.Notify(NotificationSeverity.Warning, "Failed", errorMessage);
     }
   }
@@ -289,4 +286,5 @@
   {
     isCalendarVisible = !isCalendarVisible;
   }
+
 }

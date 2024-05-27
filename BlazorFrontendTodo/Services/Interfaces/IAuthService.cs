@@ -8,5 +8,7 @@ namespace BlazorFrontendTodo.Services.Interfaces
     Task SetTokenAsync(string token);
     Task RemoveTokenAsync();
     Task<string> GetUserIdAsync();
+
+    Task<string> GetUserEmailAsync();
   }
 }

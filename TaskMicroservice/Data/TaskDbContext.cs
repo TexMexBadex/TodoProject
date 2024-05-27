@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TaskMicroservice.Models;
 
 namespace TaskMicroservice.Data
 {
