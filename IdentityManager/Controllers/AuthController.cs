@@ -113,6 +113,7 @@ public class AuthController : ControllerBase
     var token = tokenHandler.CreateToken(tokenDescriptor);
     var tokenString = tokenHandler.WriteToken(token);
 
+
     var cookieOptions = new CookieOptions
     {
       HttpOnly = true,

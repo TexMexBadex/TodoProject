@@ -1,6 +1,4 @@
 ﻿@using BlazorFrontendTodo.Pages
-@inject global::BlazorFrontendTodo.Services.UserAuthenticationStateProvider _authenticationStateProvider
-@inject NavigationManager _navManager
 
 <CascadingAuthenticationState>
   <Router AppAssembly="@typeof(App).Assembly">
@@ -31,17 +29,5 @@
 </CascadingAuthenticationState>
 
 @code {
-  // protected override async Task OnInitializedAsync()
-  // {
-  //   // Sørger for at den ikke redirector til login siden fra registreringssiden
-  //   var currentUri = _navManager.Uri;
-  //   var relativeUri = currentUri.Replace(_navManager.BaseUri, "/");
-
-  //   if (relativeUri != "/register" && relativeUri != "/login")
-  //   {
-  //     _navManager.NavigateTo("/login");
-  //   }
-
-  //   await Task.CompletedTask; 
-  // }
+ 
 }

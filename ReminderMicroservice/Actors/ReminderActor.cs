@@ -35,9 +35,14 @@ namespace ReminderMicroservice.Actors
     // Delete a reminder
     public async Task DeleteReminder(string reminderName)
     {
+      _logger.LogInformation("Deletion of reminder received. Trying to delete reminder.");
       await UnregisterReminderAsync(reminderName);
 
+      _logger.LogInformation("Removing state for reminder.");
       await StateManager.RemoveStateAsync("reminder");
+
+      _logger.LogInformation("State removed.");
+
     }
 
     // Trigger the reminder
