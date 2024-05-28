@@ -28,8 +28,9 @@ else
   <div class="row">
     <div class="d-flex col m-2 justify-content-evenly">
 
-      <RadzenTextBox Placeholder="Do laundry..." Name="TaskContent" @bind-Value="currentTodo.Content" Style="flex-grow: 1;"/>
+      <RadzenTextBox MaxLength="75" Placeholder="Do laundry..." Name="TaskContent" @bind-Value="currentTodo.Content" Style="flex-grow: 1;"/>
       <RadzenRequiredValidator Component="TaskContent" DefaultValue="string.Empty"/>
+
 
       <RadzenButton Icon="calendar_month" Click="ToggleCalendar"/>
       @if (isCalendarVisible)

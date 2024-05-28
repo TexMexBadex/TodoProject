@@ -63,10 +63,8 @@
 
   public async Task HandleLogin()
   {
-
     var httpClient = _HttpClientFactory.CreateClient("unauthenticatedUserApi");
-
-
+    
     var response = await httpClient.PostAsJsonAsync("api/auth/login", new LoginModel
       {
         Email = loginModel.Email,

@@ -7,7 +7,7 @@ namespace BlazorFrontendTodo.Services;
 
 public class UserAuthenticationStateProvider : AuthenticationStateProvider
 {
-  private readonly IAuthService _authService; // Reference til AuthService
+  private readonly IAuthService _authService; 
 
   public UserAuthenticationStateProvider(IAuthService authService)
   {

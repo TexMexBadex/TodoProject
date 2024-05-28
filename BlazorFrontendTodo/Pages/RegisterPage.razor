@@ -20,7 +20,7 @@
     <RadzenTemplateForm Data="@registerRequest" TItem="RegModel" Submit="@OnSubmit">
       <RadzenFieldset Text="Register">
 
-        <div class="col pb-2">
+        <div class="col pt-2">
           <RadzenLabel Component="Email" Text="Enter an email address" />
         </div>
         <div class="col pb-2">
@@ -31,7 +31,7 @@
           <RadzenRequiredValidator Component="Email" Text="Enter an email" Style="position:absolute" />
           <RadzenEmailValidator Component="Email" Text="Provide a valid email" Style="position:absolute" />
         </div>
-        <div class="col pb-2">
+        <div class="col pt-2">
           <RadzenLabel Component="Password" Text="Enter a password" />
         </div>
         <div class="col pb-2">
@@ -50,13 +50,17 @@
         </div>
         <div class="col pb-2">
           <RadzenPassword @bind-Value="registerRequest.ConfirmPassword" Name="ConfirmPas" class="w-100" />
+        </div>
+        <div class="col d-flex pb-2">
           <RadzenRequiredValidator Component="ConfirmPas" Text="Repeat your password" Style="position:absolute" />
           @if (!string.IsNullOrWhiteSpace(registerRequest.Password))
           {
             <RadzenCompareValidator Visible=@(!string.IsNullOrEmpty(registerRequest.ConfirmPassword)) Value=@registerRequest.Password Component="ConfirmPas" Text="Passwords should match." />
           }
         </div>
+        <div class="col pt-3" align="left" >
         <RadzenButton ButtonType="ButtonType.Submit" Text="Submit" />
+        </div>
       </RadzenFieldset>
     </RadzenTemplateForm>
   </div>

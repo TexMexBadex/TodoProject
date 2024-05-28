@@ -7,10 +7,6 @@ using TaskMicroservice.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//builder.Services.AddDaprClient(builder => builder
-//  .UseHttpEndpoint($"http://localhost:3501")
-//  .UseGrpcEndpoint($"http://localhost:50002"));
-
 builder.Services.AddDaprClient();
 
 builder.Services.AddCors(options =>

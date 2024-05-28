@@ -1,10 +1,9 @@
 ﻿using BlazorFrontendTodo.Services.Interfaces;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading;
-using System.Threading.Tasks;
 
-public class AuthorizationMessageHandler : DelegatingHandler //DelegatingHandler: Bruges til at manipulere HTTP-anmodninger og -svar. I dette tilfælde bruges det til at tilføje JWT-token til hver anmodning.
+public class AuthorizationMessageHandler : DelegatingHandler //DelegatingHandler:
+                                                             //Bruges til at manipulere HTTP-anmodninger og -svar.
+                                                             //I dette tilfælde bruges det til at tilføje JWT-token til hver anmodning.
 {
   private readonly IAuthService _authService;
 
