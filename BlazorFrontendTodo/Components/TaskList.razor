@@ -1,0 +1,90 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using BlazorFrontendTodo.Models
+@typeparam TItem
+
+
+
+
+<RadzenDataGrid Data="@sortedTasks" TItem="TaskItem">
+  <Columns>
+    <RadzenDataGridColumn TItem="TaskItem" Property="Id" Visible="false" Filterable="false" Sortable="false"/>
+    <RadzenDataGridColumn TItem="TaskItem" Property="UserId" Visible="false" Filterable="false" Sortable="false" />
+    <RadzenDataGridColumn Width="auto"  TItem="TaskItem" Property="Content" Filterable="false" Sortable="false">
+    <Template Context="task">
+      <div style="white-space: normal; word-wrap: break-word; font-size:medium; ">
+        @task.Content
+      </div>
+    </Template>
+    </RadzenDataGridColumn>
+    <RadzenDataGridColumn TextAlign="TextAlign.Center" Width="12rem" TItem="TaskItem" Property="Reminder" Filterable="false" Sortable="false" >
+      <HeaderTemplate>
+        <RadzenImage Path="calendar-clock.png" Style="width: 20px; height: 20px;" />
+      </HeaderTemplate>
+      <Template Context="task">
+        @if (task.Reminder.HasValue)
+        {
+            <RadzenLabel Text="@task.Reminder.Value.ToString("g")" Style="font-size: medium; " />
+        }
+        else
+        {
+          <RadzenImage Path="cross.png" Style="width: 20px; height: 20px;"/>
+        }
+      </Template>
+    </RadzenDataGridColumn>
+    <RadzenDataGridColumn TextAlign="TextAlign.Center" Width="5rem" TItem="TaskItem" Property="IsCompleted" Filterable="false" Sortable="false">
+      <HeaderTemplate>
+        <RadzenImage Path="check.png" Style="width: 20px; height: 20px;" />
+      </HeaderTemplate>
+      <Template Context="task">
+        <RadzenCheckBox TriState="false" @bind-Value="task.IsCompleted" TValue="bool" Change="@(args => OnTaskCompletedChange(task))"/>
+      </Template>
+    </RadzenDataGridColumn>
+    <RadzenDataGridColumn TextAlign="TextAlign.Center" Width="75px">
+      <Template Context="task">
+        <RadzenImage Path="pencil.png" Style="width: 20px; height: 20px; cursor: pointer;" Click="@(args => EditTask(task))" />
+      </Template>
+    </RadzenDataGridColumn>
+    <RadzenDataGridColumn TextAlign="TextAlign.Center" Width="75px">
+      <Template Context="task">
+        <RadzenImage Path="trash.png" Style="width: 20px; height: 20px; cursor: pointer;" Click="@(args => DeleteTask(task))" />
+      </Template>
+    </RadzenDataGridColumn>
+
+  </Columns>
+</RadzenDataGrid>
+
+
+@code {
+  [Parameter, Required]
+  public List<TaskItem> Tasks { get; set; }
+
+  [Parameter]
+  public EventCallback<TaskItem> OnTaskCompletedChanged { get; set; }
+
+  [Parameter]
+  public EventCallback<TaskItem> OnDelete { get; set; }
+
+  [Parameter]
+  public EventCallback<TaskItem> OnEdit { get; set; }
+
+  private IEnumerable<TaskItem> sortedTasks => Tasks.OrderBy(t => t.IsCompleted).ThenByDescending(t => t.Id).ToList();
+
+  private async Task OnTaskCompletedChange(TaskItem task)
+  {
+    await OnTaskCompletedChanged.InvokeAsync(task);
+    StateHasChanged();
+  }
+
+  private async Task DeleteTask(TaskItem task)
+  {
+    await OnDelete.InvokeAsync(task);
+    StateHasChanged();
+  }
+
+  private async Task EditTask(TaskItem task)
+  {
+    await OnEdit.InvokeAsync(task);
+    StateHasChanged();
+  }
+
+}

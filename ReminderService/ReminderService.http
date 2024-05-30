@@ -1,6 +1,0 @@
-@ReminderService_HostAddress = http://localhost:5293
-
-GET {{ReminderService_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

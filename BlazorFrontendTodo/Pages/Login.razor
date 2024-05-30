@@ -1,0 +1,96 @@
+﻿@using BlazorFrontendTodo.Models
+@using BlazorFrontendTodo.Services.Interfaces
+@inject IHttpClientFactory _HttpClientFactory
+@inject NavigationManager Navigation
+@inject NotificationService _nfService
+@inject IAuthService AuthService
+@inject global::BlazorFrontendTodo.Services.UserAuthenticationStateProvider AuthenticationStateProvider
+
+<RadzenNotification />
+
+@page "/login"
+@page "/"
+
+
+
+
+<div class="row">
+  <div class="col-lg-6 offset-lg-3">
+    <h1 class="d-flex pb-1 justify-content-center"> Welcome to your todolist!</h1>
+    <RadzenTemplateForm Data="@loginModel" TItem="LoginModel" Submit="@HandleLogin">
+      <RadzenFieldset Text="Sign in">
+        <RadzenStack Orientation="Orientation.Vertical">
+
+
+          <div class="col m-0">
+            <RadzenLabel Component="Email" Text="Enter your email address" />
+          </div>
+          <div class="col m-0">
+            <RadzenTextBox @bind-Value="loginModel.Email" Name="Email" class="w-100" />
+            <div class="col">
+              <RadzenRequiredValidator Component="Email" Text="Enter an email" Style="position:absolute" />
+              <RadzenEmailValidator Component="Email" Text="Invalid email"></RadzenEmailValidator>
+            </div>
+          </div>
+
+          <div class="col">
+            <RadzenLabel Component="Password" Text="Enter a password" />
+          </div>
+          <div class="col">
+            <RadzenPassword @bind-Value="loginModel.Password" Name="Password" class="w-100" />
+            <div class="col d-block mb-2">
+              <RadzenRequiredValidator Component="Password" Text="Oops, you forgot your password!" Style="position:absolute" />
+
+            </div>
+          </div>
+          <RadzenStack AlignItems="AlignItems.Center">
+
+            <RadzenButton class="w-100" ButtonType="ButtonType.Submit" Icon="login" Text="Login" />
+            <RadzenButton class="w-100" ButtonStyle="ButtonStyle.Secondary" Text="Register" Icon="how_to_reg" Click="RedirectToRegister" />
+          </RadzenStack>
+
+
+        </RadzenStack>
+      </RadzenFieldset>
+    </RadzenTemplateForm>
+  </div>
+</div>
+
+
+@code {
+  private LoginModel loginModel = new();
+  private string? errorMessage;
+
+  public async Task HandleLogin()
+  {
+    var httpClient = _HttpClientFactory.CreateClient("unauthenticatedUserApi");
+    
+    var response = await httpClient.PostAsJsonAsync("api/auth/login", new LoginModel
+      {
+        Email = loginModel.Email,
+        Password = loginModel.Password
+      });
+
+    if (response.IsSuccessStatusCode)
+    {
+      var result = await response.Content.ReadFromJsonAsync<LoginResult>(); // Læs resultatet fra API
+      await AuthService.SetTokenAsync(result.Token); // Gem token i AuthService
+      AuthenticationStateProvider.NotifyUserAuthentication(result.Token); // Underret systemet om autentificeringen
+      Navigation.NavigateTo("/todo"); // Naviger til todo-listeside
+    }
+    else
+    {
+      // Hent fejlmeddelelser fra responsen og vis dem
+      errorMessage = await response.Content.ReadAsStringAsync();
+
+      _nfService.Notify(NotificationSeverity.Error, "Login Failed: ", errorMessage);
+    }
+  }
+
+  private void RedirectToRegister()
+  {
+    Navigation.NavigateTo("/register");
+  }
+
+
+}
