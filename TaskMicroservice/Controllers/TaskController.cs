@@ -55,7 +55,11 @@ public class TaskController : ControllerBase
 
     try
     {
-
+      if (taskItem.Reminder.HasValue && taskItem.Reminder.Value < DateTime.Now && taskItem.IsCompleted)
+      {
+        await _context.SaveChangesAsync();
+        return Ok();
+      }
 
       // Send besked til ReminderMicroservice via Dapr
       if (taskItem.Reminder.HasValue && taskItem.IsCompleted == false)
@@ -67,9 +71,10 @@ public class TaskController : ControllerBase
       if (existingTask.Reminder.HasValue && !taskItem.Reminder.HasValue || taskItem.IsCompleted)
       {
         await _daprClient.PublishEventAsync("pubsub", "deletereminder", taskItem);
-
       }
+
       await _context.SaveChangesAsync();
+      return Ok();
     }
     catch (DbUpdateConcurrencyException)
     {
@@ -81,7 +86,6 @@ public class TaskController : ControllerBase
       return Conflict("Concurrency conflict: the task was modified by another user.");
     }
 
-    return NoContent();
   }
 
   // POST: api/Task
@@ -99,16 +103,18 @@ public class TaskController : ControllerBase
     };
 
     _context.Tasks.Add(taskItem);
+
     try
     {
-
       // Send besked til ReminderMicroservice via Dapr
       if (taskItem.Reminder.HasValue)
       {
         _logger.LogInformation("Publishing new reminder event");
         await _daprClient.PublishEventAsync("pubsub", "newreminder", taskItem);
-        await _context.SaveChangesAsync();
       }
+
+      await _context.SaveChangesAsync();
+      return CreatedAtAction(nameof(GetTask), new { id = taskItem.Id }, taskItem);
 
     }
     catch (Exception ex)
@@ -116,7 +122,6 @@ public class TaskController : ControllerBase
       return StatusCode(500, new { message = "An error occurred while creating the task.", details = ex.Message });
     }
 
-    return CreatedAtAction(nameof(GetTask), new { id = taskItem.Id }, taskItem);
   }
 
   // DELETE: api/Task/{guid-id}
@@ -136,20 +141,20 @@ public class TaskController : ControllerBase
     try
     {
       // Send besked til ReminderMicroservice via Dapr
-      if (taskItem.Reminder.HasValue)
+      if (taskItem.Reminder.HasValue && taskItem.Reminder.Value > DateTime.Now)
       {
-        await _daprClient.PublishEventAsync("reminderpubsub", "deletereminder", taskItem);
-        await _context.SaveChangesAsync();
-        return Ok();
+        await _daprClient.PublishEventAsync("pubsub", "deletereminder", taskItem);
+
       }
+
+      await _context.SaveChangesAsync();
+      return Ok();
 
     }
     catch (Exception)
     {
       return StatusCode(500, "An error occurred while deleting the task.");
     }
-
-    return NoContent();
   }
 
   // GET; api/task/user/{userid}

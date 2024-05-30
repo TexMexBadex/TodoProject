@@ -25,10 +25,11 @@ namespace ReminderMicroservice.Actors
       await StateManager.SetStateAsync("reminder", taskItem);
       _logger.LogInformation("State set. Now trying to register reminder.");
 
-      var dueTime = taskItem.Reminder - DateTime.UtcNow;
-      _logger.LogInformation($"DueTime set to: {dueTime.Minutes} minutes from now.");
+      var dueTime = taskItem.Reminder - DateTime.Now;
 
-      await RegisterReminderAsync(taskItem.Id.ToString(), null, dueTime, TimeSpan.FromMilliseconds(-1));
+      _logger.LogInformation($"DueTime set to: {dueTime.Days} days, {dueTime.Hours} hours, {dueTime.Minutes} minutes and {dueTime.Seconds} seconds from now.");
+
+      await RegisterReminderAsync(taskItem.Id.ToString(), null, dueTime, TimeSpan.FromMilliseconds(0));
       _logger.LogInformation($"Reminder registered for task {taskItem.Id}.");
     }
 
@@ -55,7 +56,9 @@ namespace ReminderMicroservice.Actors
         await _emailService.SendEmailAsync(
           task.UserEmail,
           "Task Reminder",
-          $"Reminder for task: {task.Content} at {task.Reminder}");
+          "Hi!" + Environment.NewLine + 
+               $"Reminder for task: {task.Content}." + Environment.NewLine + 
+               $"Reminder:{task.Reminder!.Value.ToShortDateString()}, {task.Reminder.Value.ToShortTimeString()}");
       }
     }
   }

@@ -24,7 +24,7 @@ builder.Services.AddActors(options =>
 
 // Add services to the container
 builder.Services.AddControllers().AddDapr();
-builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddScoped<IReminderService, ReminderService>();
 
 var app = builder.Build();

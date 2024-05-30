@@ -9,17 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdentityManager", "Identity
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskMicroservice", "TaskMicroservice\TaskMicroservice.csproj", "{94E133EA-1667-496E-BEB7-5C3C9447DA43}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DockerCompose", "DockerCompose", "{1D0E7659-A622-44A8-B94D-7CC8AB50CA7D}"
-	ProjectSection(SolutionItems) = preProject
-		docker-compose.yaml = docker-compose.yaml
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReminderMicroservice", "ReminderMicroservice\ReminderMicroservice.csproj", "{4FED6194-7F03-42B5-86B6-46F70C48E6F1}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D3FA8C85-F468-455A-9CFA-27B3C69277D8}"
-	ProjectSection(SolutionItems) = preProject
-		launch.ps1 = launch.ps1
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

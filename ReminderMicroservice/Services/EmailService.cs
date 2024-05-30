@@ -1,5 +1,5 @@
-﻿using MailKit.Net.Smtp;
-using MimeKit;
+﻿using System.Net;
+using System.Net.Mail;
 using ReminderMicroservice.Services.Interfaces;
 
 namespace ReminderMicroservice.Services
@@ -17,28 +17,26 @@ namespace ReminderMicroservice.Services
 
     public async Task SendEmailAsync(string to, string subject, string body)
     {
-      var emailMessage = new MimeMessage();
-      emailMessage.From.Add(new MailboxAddress("Your App Name", _configuration["EmailSettings:From"]));
-      emailMessage.To.Add(new MailboxAddress("", to));
-      emailMessage.Subject = subject;
-      emailMessage.Body = new TextPart("plain") { Text = body };
+      var mail = _configuration["EmailSettings:Mail"];
+      var pw = _configuration["EmailSettings:Pw"];
 
-      using var client = new SmtpClient();
       try
       {
-        await client.ConnectAsync(_configuration["EmailSettings:SmtpServer"], int.Parse(_configuration["EmailSettings:Port"]), bool.Parse(_configuration["EmailSettings:EnableSsl"]));
-        await client.AuthenticateAsync(_configuration["EmailSettings:Username"], _configuration["EmailSettings:Password"]);
-        await client.SendAsync(emailMessage);
+        var client = new SmtpClient("smtp-mail.outlook.com", 587)
+        {
+          EnableSsl = true,
+          Credentials = new NetworkCredential(mail, pw)
+        };
+
+        await client.SendMailAsync(new MailMessage(from: mail!, to: to, subject, body));
+
       }
       catch (Exception ex)
       {
-        _logger.LogError(ex, "An error occurred while sending the email.");
-        throw;
+        _logger.LogError("Something went wrong when trying to send email. Exception: {Ex}", ex);
       }
-      finally
-      {
-        await client.DisconnectAsync(true);
-      }
+
+
     }
   }
 }

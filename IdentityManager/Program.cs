@@ -32,7 +32,7 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
 
 // Læs JWT-konfiguration fra appsettings.json
 var jwtSettings = builder.Configuration.GetSection("Jwt");
-var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]);
+var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]!);
 
 // Konfigurer JWT autentificering
 builder.Services.AddAuthentication(options =>
